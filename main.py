@@ -13,59 +13,7 @@ from HTMLData import XPaths as Paths
 from TimeDelta import TimeDelta
 from TrainData import TrainData
 from TrainData import TrainTypeDict
-
-
-def CheckTrains(cityFrom, cityTo, date: datetime.date, driver: webdriver):
-    TrainsLookForRoot(cityFrom, cityTo, driver)
-    success = True
-    while success:
-        try:
-            driver.get(driver.current_url + '&date=' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
-            success = False
-        except:
-            success = True
-    try:
-        driver.find_element(By.CLASS_NAME, CN.TrainSearchError)
-        return None
-    except:
-        pass
-    page = driver.find_element(By.TAG_NAME, 'html')
-    for i in range(50):
-        page.send_keys(Keys.PAGE_DOWN)
-        time.sleep(0.2)
-    trains = driver.find_elements(By.CLASS_NAME, CN.TrainInfoFields)
-    trainsData = []
-    for trainIfoField in trains:
-        dateFields = trainIfoField.find_elements(By.CLASS_NAME, CN.TrainDateFields)
-        startTime = dateFields[0].find_element(By.CLASS_NAME, CN.TrainTimeField)
-        arrivalTime = dateFields[1].find_element(By.CLASS_NAME, CN.TrainTimeField)
-        travelTime = dateFields[2].find_element(By.CLASS_NAME, CN.TrainTravelTime)
-        travelTime = travelTime.find_element(By.TAG_NAME, 'span')
-        trainOffers = trainIfoField.find_elements(By.XPATH, Paths.TrainOffers)
-        startTime = GetTime(startTime.text)
-        arrivalTime = GetTime(arrivalTime.text)
-        travelTime = GetTravelTime(travelTime.text)
-        for trainOffer in trainOffers:
-            try:
-                priceOffer = trainOffer.find_element(By.XPATH, Paths.TrainPrice)
-                priceOffer = GetPrice(priceOffer.text)
-                trainType = trainOffer.find_element(By.XPATH, Paths.TrainType)
-                numberOfSeats = trainOffer.find_element(By.XPATH, Paths.TrainNumberOfSeats)
-                numberOfSeats = GetNumberOfSeats(numberOfSeats.text)
-                try:
-                    arrivalDate = dateFields[1].find_element(By.XPATH, Paths.TrainArrivalDate)
-                    arrivalDate = GetArrivalDate(arrivalDate.text)
-                    arrivalDate = datetime.date(date.year, date.month, arrivalDate)
-                    if arrivalDate.day < date.day:
-                        arrivalDate.month += 1
-                except:
-                    arrivalDate = date
-                trainsData.append(TrainData(arrivalDate, arrivalTime, date, startTime, travelTime,
-                                            TrainTypeDict.get(trainType.text), numberOfSeats, priceOffer,
-                                            driver.current_url))
-            except:
-                pass
-    return trainsData
+from TrainParsing import TrainParser
 
 
 def CheckBuses(cityFrom, cityTo, date, driver):
@@ -83,15 +31,6 @@ def CheckBuses(cityFrom, cityTo, date, driver):
     moveFrom.click()
     checkButton = driver.find_element(By.XPATH, Paths.BusCheckButton)
     checkButton.click()
-
-
-def CheckCityName(name, driver):
-    TrainsLookForRoot(name, driver)
-    try:
-        driver.find_element(By.CLASS_NAME, CN.TrainCityError)
-        return False
-    except:
-        return True
 
 
 def GetTime(timeStr):
@@ -150,28 +89,14 @@ def GetArrivalDate(inputStr):
     return int(inputStr[:spaceIndex])
 
 
-def TrainsLookForRoot(cityFrom, cityTo, driver):
-    driver.get('https://m.tutu.ru/poezda/')
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, Paths.TrainBanner)))
-    banner = driver.find_element(By.XPATH, Paths.TrainBanner)
-    banner.click()
-    moveTo = driver.find_element(By.XPATH, Paths.TrainMoveTo)
-    moveTo.send_keys(cityTo)
-    time.sleep(1.5)
-    moveFrom = driver.find_element(By.XPATH, Paths.TrainMoveFrom)
-    moveFrom.send_keys(cityFrom)
-    time.sleep(1.5)
-    checkButton = driver.find_element(By.XPATH, Paths.TrainCheckButton)
-    checkButton.click()
-
-
 if __name__ == '__main__':
     date = datetime.date(2022, 7, 10)
     pool = ThreadPool(processes=1)
     EXE_PATH = r'C:\chromedriver.exe'
     driver1 = webdriver.Chrome(EXE_PATH)
     driver2 = webdriver.Chrome(EXE_PATH)
-    resTrains = pool.apply_async(CheckTrains, ('Челябинск', 'Златоуст', date, driver1))
+    parser = TrainParser('Челябинск', 'Златоуст', date, driver1)
+    resTrains = pool.apply_async(parser.CheckTrains, ())
     CheckBuses('Челябинск', 'Златоуст', date, driver2)
     resTrains = resTrains.get(60)
-    CheckTrains('Челябинск', 'Златоуст', date, driver1)
+    print('')

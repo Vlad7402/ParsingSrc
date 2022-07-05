@@ -15,25 +15,38 @@ from TrainData import TrainTypeDict
 
 
 class TrainParser:
-    def CheckTrains(self, cityFrom, cityTo, date: datetime.date, driver: webdriver):
-        self.__TrainsLookForRoot(cityFrom, cityTo, driver)
+    driver: webdriver
+    date: datetime.date
+    cityFrom: str
+    cityTo: str
+
+    def __init__(self, cityFrom, cityTo, date: datetime.date, driver: webdriver):
+        self.cityTo = cityTo
+        self.cityFrom = cityFrom
+        self.date = date
+        self.driver = driver
+
+    def CheckTrains(self):
+        self.__TrainsLookForRoot(self.cityFrom, self.cityTo, self.driver)
         success = True
         while success:
             try:
-                driver.get(driver.current_url + '&date=' + str(date.day) + '.' + str(date.month) + '.' + str(date.year))
+                self.driver.get(
+                    self.driver.current_url + '&date=' + str(self.date.day) + '.' + str(self.date.month) + '.' + str(
+                        self.date.year))
                 success = False
             except:
                 success = True
         try:
-            driver.find_element(By.CLASS_NAME, CN.TrainSearchError)
+            self.driver.find_element(By.CLASS_NAME, CN.TrainSearchError)
             return None
         except:
             pass
-        page = driver.find_element(By.TAG_NAME, 'html')
+        page = self.driver.find_element(By.TAG_NAME, 'html')
         for i in range(50):
             page.send_keys(Keys.PAGE_DOWN)
             time.sleep(0.2)
-        trains = driver.find_elements(By.CLASS_NAME, CN.TrainInfoFields)
+        trains = self.driver.find_elements(By.CLASS_NAME, CN.TrainInfoFields)
         trainsData = []
         for trainIfoField in trains:
             dateFields = trainIfoField.find_elements(By.CLASS_NAME, CN.TrainDateFields)
@@ -55,14 +68,14 @@ class TrainParser:
                     try:
                         arrivalDate = dateFields[1].find_element(By.XPATH, Paths.TrainArrivalDate)
                         arrivalDate = self.__GetArrivalDate(arrivalDate.text)
-                        arrivalDate = datetime.date(date.year, date.month, arrivalDate)
-                        if arrivalDate.day < date.day:
+                        arrivalDate = datetime.date(self.date.year, self.date.month, arrivalDate)
+                        if arrivalDate.day < self.date.day:
                             arrivalDate.month += 1
                     except:
-                        arrivalDate = date
-                    trainsData.append(TrainData(arrivalDate, arrivalTime, date, startTime, travelTime,
+                        arrivalDate = self.date
+                    trainsData.append(TrainData(arrivalDate, arrivalTime, self.date, startTime, travelTime,
                                                 TrainTypeDict.get(trainType.text), numberOfSeats, priceOffer,
-                                                driver.current_url))
+                                                self.driver.current_url))
                 except:
                     pass
         return trainsData
