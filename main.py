@@ -1,12 +1,12 @@
 import datetime
 import time
-import json
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from multiprocessing.pool import ThreadPool
 
 from HTMLData import ClassNames as CN
 from HTMLData import XPaths as Paths
@@ -14,12 +14,9 @@ from TimeDelta import TimeDelta
 from TrainData import TrainData
 from TrainData import TrainTypeDict
 
-EXE_PATH = r'C:\chromedriver.exe'
-driver = webdriver.Chrome(EXE_PATH)
 
-
-def CheckTrains(cityFrom, cityTo, date: datetime.date):
-    TrainsLookForRoot(cityFrom, cityTo)
+def CheckTrains(cityFrom, cityTo, date: datetime.date, driver: webdriver):
+    TrainsLookForRoot(cityFrom, cityTo, driver)
     success = True
     while success:
         try:
@@ -68,9 +65,10 @@ def CheckTrains(cityFrom, cityTo, date: datetime.date):
                                             driver.current_url))
             except:
                 pass
+    return trainsData
 
 
-def CheckBuses(cityFrom, cityTo, date):
+def CheckBuses(cityFrom, cityTo, date, driver):
     driver.get('https://bus.tutu.ru/расписание_автобусов/')
     moveTo = driver.find_element(By.XPATH, Paths.BusMoveToField)
     moveTo.send_keys(cityTo)
@@ -87,8 +85,8 @@ def CheckBuses(cityFrom, cityTo, date):
     checkButton.click()
 
 
-def CheckCityName(name):
-    TrainsLookForRoot(name, name)
+def CheckCityName(name, driver):
+    TrainsLookForRoot(name, driver)
     try:
         driver.find_element(By.CLASS_NAME, CN.TrainCityError)
         return False
@@ -152,7 +150,7 @@ def GetArrivalDate(inputStr):
     return int(inputStr[:spaceIndex])
 
 
-def TrainsLookForRoot(cityFrom, cityTo):
+def TrainsLookForRoot(cityFrom, cityTo, driver):
     driver.get('https://m.tutu.ru/poezda/')
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, Paths.TrainBanner)))
     banner = driver.find_element(By.XPATH, Paths.TrainBanner)
@@ -169,4 +167,11 @@ def TrainsLookForRoot(cityFrom, cityTo):
 
 if __name__ == '__main__':
     date = datetime.date(2022, 7, 10)
-    CheckTrains('Челябинск', 'Златоуст', date)
+    pool = ThreadPool(processes=1)
+    EXE_PATH = r'C:\chromedriver.exe'
+    driver1 = webdriver.Chrome(EXE_PATH)
+    driver2 = webdriver.Chrome(EXE_PATH)
+    resTrains = pool.apply_async(CheckTrains, ('Челябинск', 'Златоуст', date, driver1))
+    CheckBuses('Челябинск', 'Златоуст', date, driver2)
+    resTrains = resTrains.get(60)
+    CheckTrains('Челябинск', 'Златоуст', date, driver1)
