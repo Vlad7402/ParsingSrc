@@ -10,8 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from HTMLData import ClassNames as CN
 from HTMLData import XPaths as Paths
 from TimeDelta import TimeDelta
-from TrainData import TrainData
-from TrainData import TrainTypeDict
+from ticket_data import TicketData, TicketType
 
 
 class TrainParser:
@@ -73,9 +72,9 @@ class TrainParser:
                             arrivalDate.month += 1
                     except:
                         arrivalDate = self.date
-                    trainsData.append(TrainData(arrivalDate, arrivalTime, self.date, startTime, travelTime,
-                                                TrainTypeDict.get(trainType.text), numberOfSeats, priceOffer,
-                                                self.driver.current_url))
+                    trainsData.append(
+                        TicketData(self.cityFrom, self.cityTo, arrivalDate, arrivalTime, self.date, startTime,
+                                   travelTime, numberOfSeats, priceOffer, self.driver.current_url, TicketType.train))
                 except:
                     pass
         return trainsData
