@@ -66,11 +66,15 @@ class TicketData:
         self.fullWayPrice = fullWayPrice
 
     def __str__(self) -> str:
-        return f"{self.arrivalDate}\n" \
-               f"{self.arrivalTime}\n" \
-               f"{self.startDate}\n" \
-               f"{self.startTime}\n" \
-               f"{self.travelTime}\n" \
-               f"{self.numberOfSeats}\n" \
-               f"{self.URL}\n" \
-               f"{self.price}\n"
+        return \
+            f"{self.arrivalDate}\n" \
+            f"{self.arrivalTime}\n" \
+            f"{self.startDate}\n" \
+            f"{self.startTime}\n" \
+            f"{self.travelTime}\n" \
+            f"{self.numberOfSeats}\n" \
+            f"{self.URL}\n" \
+            f"{self.price}\n" \
+            f"{self.cityFrom}\n" \
+            f"{self.cityTo}\n" \
+            f"{self.ticketType}\n"

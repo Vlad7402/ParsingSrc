@@ -192,7 +192,7 @@ class BusParser:
 
     def __GetCitys(self, citys: str):
         citys = citys.replace(' – ', '+')
-        citysList = [citys[:citys.find('+')], citys[citys.find('+'):]]
+        citysList = [citys[:citys.find('+')], citys[citys.find('+') + 1:]]
         return citysList
 
     def __GetTravelTime(self, inputTime: WebElement):

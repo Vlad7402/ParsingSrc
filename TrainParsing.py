@@ -140,9 +140,12 @@ class TrainParser:
 
     def __TrainsLookForRoot(self, cityFrom, cityTo, driver):
         driver.get('https://m.tutu.ru/poezda/')
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, Paths.TrainBanner)))
-        banner = driver.find_element(By.XPATH, Paths.TrainBanner)
-        banner.click()
+        try:
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, Paths.TrainBanner)))
+            banner = driver.find_element(By.XPATH, Paths.TrainBanner)
+            banner.click()
+        except:
+            pass
         moveTo = driver.find_element(By.XPATH, Paths.TrainMoveTo)
         moveTo.send_keys(cityTo)
         time.sleep(1.5)

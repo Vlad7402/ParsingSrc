@@ -36,3 +36,5 @@ if __name__ == '__main__':
 
         i += 1
         time.sleep(1)
+    driver2.quit()
+    driver1.quit()
