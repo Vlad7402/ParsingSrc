@@ -21,8 +21,8 @@ class BusData:
     fullWayPrice: Optional[int]
 
     def __init__(self, arrivalDate: datetime.date, arrivalTime: datetime.time, startDate: datetime.date,
-                 startTime: datetime.time, travelTime: TimeDelta, numberOfSeats: int, price: int, URL: str,
-                 change: bool, changeTime: TimeDelta, fullWayTime: TimeDelta, fullWayPrice: int):
+                 startTime: datetime.time, travelTime: TimeDelta, numberOfSeats: Optional[int], price: int, URL: str,
+                 change: bool, changeTime: Optional[TimeDelta], fullWayTime: Optional[TimeDelta], fullWayPrice: Optional[int]):
         self.arrivalDate = arrivalDate
         self.arrivalTime = arrivalTime
         self.startDate = startDate
